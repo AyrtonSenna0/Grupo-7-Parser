@@ -241,6 +241,17 @@ class Parser:
         raise NotImplementedError("implemente while_statement")
 
     def parse_return_statement(self) -> Stmt:
+        start = self.expect(TokenKind.KW_RETURN)
+        valor = None
+        if not self.check(TokenKind.SEMICOLON):
+            valor = self.parse_expression()
+
+        end = self.expect(TokenKind.SEMICOLON)
+        return Stmt(
+            valor,
+            span = self._span(start,end)
+        )
+
         raise NotImplementedError("implemente return_statement")
 
     def parse_print_statement(self) -> Stmt:
