@@ -172,16 +172,61 @@ class Parser:
         return TYPE_BY_TOKEN[token.kind]
 
     def parse_parameter_list(self) -> list[Parameter]:
-        raise NotImplementedError("implemente parameter_list")
+        params = [self.parse_parameter()]
+        while self.match(TokenKind.COMMA):
+            params.append(self.parse_parameter())
+        return params
 
     def parse_parameter(self) -> Parameter:
-        raise NotImplementedError("implemente parameter")
+        start = self.peek()
+        param_type = self.parse_type()
+        name = self.expect(TokenKind.IDENTIFIER)
+        return Parameter(
+            param_type,
+            name.lexeme,
+            span = self._span(start, name)
+        )
 
     def parse_block(self) -> Block:
-        raise NotImplementedError("implemente block")
+        start = self.peek()
+        self.expect(TokenKind.LEFT_BRACE)
+        statements = []
+        while self.peek().kind != TokenKind.RIGHT_BRACE and(
+            self.peek().kind != TokenKind.EOF
+        ):
+            statements.append(self.parse_statement())
+       
+        return Block(
+            statements,
+            span = self._span(start, self.expect(TokenKind.RIGHT_BRACE))
+        )
 
     def parse_statement(self) -> Stmt:
-        raise NotImplementedError("implemente statement")
+        token = self.peek()
+        if token.kind in TYPE_START:
+            return self.parse_declaration()
+        
+        elif token.kind == TokenKind.KW_IF:
+            return self.parse_if_statement()
+        
+        elif token.kind == TokenKind.KW_WHILE:
+            return self.parse_while_statement()
+        
+        elif token.kind == TokenKind.KW_RETURN:
+            return self.parse_return_statement()
+        
+        elif token.kind == TokenKind.KW_PRINT:
+            return self.parse_print_statement()
+        
+        elif token.kind == TokenKind.LEFT_BRACE:
+            return self.parse_block()
+
+        elif token.kind == TokenKind.IDENTIFIER:
+            return self.parse_id_or_call_statement()
+
+        else:
+            self.expect(STATEMENT_START)
+        
 
     def parse_id_or_call_statement(self) -> Stmt:
         raise NotImplementedError("implemente id_or_call_statement")
